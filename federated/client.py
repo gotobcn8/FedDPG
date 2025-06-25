@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
-from torch.amp import autocast, GradScaler
+from torch.amp import autocast
+from torch.cuda.amp.grad_scaler import GradScaler
 from transformers import get_linear_schedule_with_warmup
 from tqdm import tqdm  # Import tqdm for progress bar
 
