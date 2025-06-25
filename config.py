@@ -1,0 +1,28 @@
+# config.py
+import torch
+
+# Default configuration settings
+DEFAULT_CONFIG = {
+    "model_name": "roberta-base",
+    "prompt_length": 10,
+    "batch_size": 256,
+    "num_rounds": 50,
+    "num_clients": 100,
+    "client_fraction": 0.2,
+    "local_epochs": 20,
+    "learning_rate": 0.001,
+    "device": "cuda:0" if torch.cuda.is_available() else "cpu",
+    "dev_mode": False,
+    "use_non_iid": False,
+    "alpha_split": 0.5,
+    "alpha_device": 5.0,
+    "checkpoint_path": None,
+    "unlearning_client_id": 0,
+    "portion_unlearn": 0.2,
+    "metric": "accuracy",
+    "seed": 42,
+    "num_eval_clients": 5,
+    "mode": "learning",
+    "log_dir": "logs",
+    "checkpoint_dir": "checkpoints",
+}
