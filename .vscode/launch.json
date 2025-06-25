@@ -9,11 +9,12 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "${file}",
+            "program": "main.py",
             "console": "integratedTerminal",
             "env": {
              "PYTHONPATH": "${workspaceFolder}"
-           }
+           },
+    
         }
     ]
 }

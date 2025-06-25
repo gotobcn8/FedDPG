@@ -10,7 +10,7 @@ from federated.server import server
 
 def main():
     parser = argparse.ArgumentParser(description="Federated Adaptive Prompt Tuning")
-    parser.add_argument("--dataset", type=str, choices=["sst2", "cola", "mnli", "rte", "mrpc", "yelp", "agnews"], required=True, help="Dataset to use for training")
+    parser.add_argument("--dataset", type=str, choices=["sst2", "cola", "mnli", "rte", "mrpc", "yelp", "agnews"], default='sst2', help="Dataset to use for training")
     parser.add_argument("--model_name", type=str, default=DEFAULT_CONFIG["model_name"], help="Name of the pre-trained model")
     parser.add_argument("--prompt_length", type=int, default=DEFAULT_CONFIG["prompt_length"], help="Length of the prompt")
     parser.add_argument("--batch_size", type=int, default=DEFAULT_CONFIG["batch_size"], help="Batch size for training")

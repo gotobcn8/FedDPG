@@ -22,4 +22,4 @@ def generate_filename(args, file_type):
             return FileTypes[file_type]
         raise ValueError(f"Invalid file type: {file_type}")
 
-    func_file_type(file_type )
+    return func_file_type(file_type)
