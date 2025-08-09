@@ -2,6 +2,8 @@ import random
 from federated.client import client_learn
 from utils.aggregation_utils import aggregate_model_states
 from utils.model_utils import initialize_model
+import os
+import torch
 
 def fl_round(args, logger, global_model, r, client_datasets, selected_clients):
 
@@ -14,6 +16,7 @@ def fl_round(args, logger, global_model, r, client_datasets, selected_clients):
     logger.info("#" * 80)
 
     client_model_states = []
+    return_client_model_states = {}
     for idx, client_id in enumerate(selected_clients):
         logger.info("-" * 80)
         logger.info(f"Client {idx + 1} / {len(selected_clients)}")
@@ -27,9 +30,15 @@ def fl_round(args, logger, global_model, r, client_datasets, selected_clients):
         client_model.to(args.device)
 
         client_model_state = client_learn(logger, client_model, client_dataset, args)
+        # save_client_model(args,client_id,client_model_state)
         client_model_states.append(client_model_state)
-
+        return_client_model_states[client_id] = client_model_state['prompt_generator']
+        
     logger.info(f"Aggregating model states from {args.num_clients} clients")
     aggregated_model_state = aggregate_model_states(client_model_states)
     
-    return aggregated_model_state
+    return aggregated_model_state, return_client_model_states
+
+def save_client_model(args,idx,client_model):
+    client_model_dir = os.path.join(args.store_dir,str(idx))
+    torch.save(client_model_dir,client_model)

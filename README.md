@@ -21,3 +21,16 @@ Related work
 | ------| -----| ---------- | ---- |
 | Fast-FedUL: A Training-Free Federated Unlearning with Provable Skew Resilience | 2024 | PKDD |  https://arxiv.org/pdf/2405.18040    |
 |  Fast federated machine unlearning with nonlinear functional theory | 2023 | ICML |     |
+
+
+### Experiments setup
+AGNEWS SST-2 Yelp Polarity
+
+
+100 clients, 10 global rounds, 10% selected rate.
+
+
+| Model | agnews | SST-2 | Yelp |
+| ------| -----| ---------- | ---- |
+| FedDPGu |  |   |  |
+| fastFedDPGu |  |   |   |
