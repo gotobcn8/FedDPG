@@ -32,6 +32,7 @@ def main():
     parser.add_argument("--num_eval_clients", type=int, default=DEFAULT_CONFIG["num_eval_clients"], help="Number of clients to evaluate for performance before and after unlearning")
     parser.add_argument("--mode", type=str, choices=['learning', 'unlearning', 'both'], default=DEFAULT_CONFIG["mode"], help="Choose the mode of operation: learning, unlearning, or both")
     parser.add_argument("--alpha", type=float, default=DEFAULT_CONFIG["alpha"], help="alpha")
+    parser.add_argument("--unlearn_method", type=str, default=DEFAULT_CONFIG["unlearn_method"], help="unlearn method: ['fast','relabel']")
     args = parser.parse_args()
 
     # Set random seeds for reproducibility

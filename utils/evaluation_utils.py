@@ -142,7 +142,7 @@ def evaluate_client_model(
                 all_labels.extend(labels.cpu().numpy())
 
         score = calculate_performance(args.metric, all_labels, all_preds)
-        indicator.insert(f'{client_id}_unlearn_{before_unlearning}',score)
+        indicator.insert(f'{client_id}_beforeunlearn_{before_unlearning}',score)
         client_scores[client_id] = score
 
     for client_id, score in client_scores.items():

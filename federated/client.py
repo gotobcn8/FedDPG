@@ -4,6 +4,7 @@ from torch.amp import autocast
 from torch.cuda.amp.grad_scaler import GradScaler
 from transformers import get_linear_schedule_with_warmup
 from tqdm import tqdm  # Import tqdm for progress bar
+from torch.optim import AdamW
 
 def client_learn(logger,model, dataset, args):
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)

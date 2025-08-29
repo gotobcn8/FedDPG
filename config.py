@@ -53,4 +53,5 @@ DEFAULT_CONFIG = {
     "log_dir": "logs",
     "checkpoint_dir": "checkpoints",
     "alpha": 0.5,
+    "unlearn_method":'fast',
 }

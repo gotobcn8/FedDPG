@@ -4,9 +4,11 @@ from utils.evaluation_utils import evaluate_client_model, evaluate_global_model,
 from utils.logging_utils import log_config
 from utils.model_utils import initialize_model
 from federated.learning import fl_round
-from federated.unlearning import fu_round, fastFedULIID, fastFedUL_NonIID
+from federated.unlearning import fu_round, fastFedULIID, fastFedUL_NonIID, fu_round0810
+import numpy as np
 import os
 import copy
+import time
 import torch
 
 def __init_client_model_store_path(args):
@@ -68,16 +70,7 @@ def server(args, logger):
         logger.info(f"#{'':^78}#")
         logger.info("#" * 80)
 
-        client_dataset = client_datasets[args.unlearning_client_id]
         
-        num_unlearn = int(len(client_dataset) * args.portion_unlearn)
-
-        logger.info(f"Selected Client for Unlearning: Client {args.unlearning_client_id + 1}")
-        logger.info(f"Number of data points to unlearn: {num_unlearn}")
-
-            # Select data points to unlearn
-        unlearn_indices = random.sample(range(len(client_dataset)), num_unlearn)
-        logger.info(f"Data point indices to unlearn: {unlearn_indices}")
         
         # Get random clients to evaluate the model
         random_evaluation_clients = random.sample(range(args.num_clients), args.num_clients)
@@ -97,16 +90,39 @@ def server(args, logger):
         evaluate_global_model(args, logger, global_model, val_dataset, r=-1, indicator = indicator, before_unlearn = True)
         
         original_prompt_generator = copy.deepcopy(global_model.prompt_generator)
+        run_times = []
         for ucid in random_evaluation_clients:
             # for client in range(args.num_clients):
-            unlearnApi(
-                logger,args,client_datasets,val_dataset,global_model,grads_all_round,args.num_rounds,ucid,indicator,
+            client_dataset = client_datasets[ucid]
+        
+            num_unlearn = int(len(client_dataset) * args.portion_unlearn)
+
+            logger.info(f"Selected Client for Unlearning: Client {ucid + 1}")
+            logger.info(f"Number of data points to unlearn: {num_unlearn}")
+
+                # Select data points to unlearn
+            unlearn_indices = random.sample(range(len(client_dataset)), num_unlearn)
+            logger.info(f"Data point indices to unlearn: {unlearn_indices}")
+            run_time_per = unlearnApi(
+                logger = logger,
+                args = args,
+                client_datasets = client_datasets,
+                val_dataset = val_dataset,
+                global_model = global_model,
+                grads_all_round = grads_all_round,
+                cur_round = args.num_rounds,
+                target_client = ucid,
+                indicator = indicator,
+                unlearn_indices = unlearn_indices,
+                unlearn_method = args.unlearn_method,
             )
+            run_times.append(run_time_per)
             global_model.prompt_generator = original_prompt_generator
             # torch.load_state(original_prompt_generator)
-
+        logger.info(f'average run time:{np.mean(run_times)}')
+        
     indicator.save(
-        file_name=f'{args.dataset}_{args.model_name}_{args.num_rounds}_{args.num_clients}.json',
+        file_name=f'{args.dataset}_{args.model_name}_{args.num_rounds}_{args.num_clients}_{args.unlearn_method}.json',
         formation='json',
     )
     
@@ -127,6 +143,8 @@ def unlearnApi(
     cur_round,
     target_client,
     indicator,
+    unlearn_indices = None,
+    unlearn_method = 'fast',
 ):
     # if args.use_non_iid:
     #     global_model_state = fastFedUL_NonIID(
@@ -140,24 +158,48 @@ def unlearnApi(
     #     )
     # # Perform federated unlearning round
     # else:
-    global_model_state = fastFedULIID(
+    global_model_tmp = copy.deepcopy(global_model)
+    evaluate_client_model(
         args,
-        logger,
-        global_model.prompt_generator,
-        target_client=target_client,
-        round = cur_round,
-        grads_all_round = grads_all_round,
-        client_weights = None,
+        logger, 
+        global_model_tmp, 
+        client_datasets, 
+        target_client, 
+        before_unlearning = True,
+        indicator = indicator,
     )
+    
+    start_time = time.time()
+    if unlearn_method == 'fast':
+        global_model_state = fastFedULIID(
+            args,
+            logger,
+            global_model_tmp.prompt_generator,
+            target_client=target_client,
+            round = cur_round,
+            grads_all_round = grads_all_round,
+            client_weights = None,
+        )
+    else:
+        global_model_state = fu_round0810(
+            args, 
+            logger, 
+            global_model_tmp, 
+            client_datasets, 
+            unlearn_indices,
+        )
+    end_time = time.time()
+    run_time = end_time - start_time
+    # print(run_time)
     # global_model.prompt_generator.load_state(global_model_state)
     # global_model_state = fu_round(args, logger, global_model, client_datasets, unlearn_indices)
-    global_model.load_state(global_model_state)
+    global_model_tmp.load_state(global_model_state)
     
     # Evaluate the model after unlearning
     evaluate_client_model(
         args,
         logger, 
-        global_model, 
+        global_model_tmp, 
         client_datasets, 
         target_client, 
         before_unlearning = False,
@@ -165,8 +207,9 @@ def unlearnApi(
     )
     
     # Evaluate the global model
-    evaluate_global_model(args, logger, global_model, val_dataset, indicator = indicator,before_unlearn = False,index = target_client)
-
+    evaluate_global_model(args, logger, global_model_tmp, val_dataset, indicator = indicator,before_unlearn = False,index = target_client)
+    return run_time
+    
 def save_client_grads(grads_all_round, client_model_states, global_model):
     '''
     grads_all_round: [
