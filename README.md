@@ -1,1 +1,1 @@
-# FedDPG: An Adaptive Yet Efficient Prompt-tuning Approach in Federated Learning Settings
+# FedDPGu: Adaptive Prompt-tuning with Built-in Unlearning for Federated Learning
